@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------------------
  * 
  * A drawable plane, for 2D game... 
- *
+ *   and a simple sample game.
+ * 
  */
 
 import javax.swing.JPanel;
@@ -39,6 +40,11 @@ public class GameWorld extends    JPanel
 
     int[] mp = {-1,-1,-1,-1}; // mouse position
 
+    int score = 0;
+    int highscore = 0;
+    int time = 0;
+    int length = 0;
+    boolean goal = false;
 
     public GameWorld(int[][] levelData) {
         setBackground(Color.BLACK);
@@ -54,6 +60,8 @@ public class GameWorld extends    JPanel
         for (int[] i : levelData) {
             w.drawLine(i[0], i[1], i[2], i[3]);
         }
+        w.setColor(Color.GREEN);
+        w.drawLine(729, 540, 797, 540);
         w.dispose();
 
         // Draw ball // could easily use an image for more fancy graphics
@@ -67,6 +75,15 @@ public class GameWorld extends    JPanel
         timer.start();
     }
 
+    public void level(int[][] levelData) {
+        worldData.clear();
+        highscore = 0;
+        for (int[] il : levelData) worldData.add(il);
+        reset();
+    }
+
+
+    // repaint ----------------------------------------------------------------
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(world, 0, 0, this);
@@ -76,13 +93,39 @@ public class GameWorld extends    JPanel
                     this);
         g.setColor(Color.GRAY);
         g.drawLine(mp[0],mp[1],mp[2],mp[3]);
+        g.setColor(Color.RED);
+
+        g.drawString("Time", 650,20);
+        g.drawString(readableTime(time),730,20);
+        g.drawString("Length",650,35);
+        g.drawString(""+length, 730,35);
+        g.drawString("Score",650,50);
+        g.drawString(""+score, 730,50);
+        g.drawString("HighScore", 650,65);
+        g.drawString(""+highscore,730,65);
+
         g.dispose();
+    }
+
+
+    // Other functions --------------------------------------------------------
+    public static String readableTime(int ms) {
+        // ignores hours
+        return String.format("%02d:%02d",
+            (ms/60000)%60,
+            (ms/1000)%60
+            );
     }
 
     public void reset() {
         p = new double[] {18,18};
         v = new double[] {0,0};
         mp = new int[] {-1,-1,-1,-1};
+
+        time = 0;
+        length = 0;
+        score = 0;
+        goal = false;
 
         drawData.clear();
         drawData.addAll(worldData);
@@ -94,9 +137,13 @@ public class GameWorld extends    JPanel
         for (int[] i : worldData) {
             w.drawLine(i[0], i[1], i[2], i[3]);
         }
+        w.setColor(Color.GREEN);
+        w.drawLine(729, 540, 797, 540);
         w.dispose();
     }
 
+
+    // Action events (Timer) --------------------------------------------------
     public void actionPerformed(ActionEvent e) {
         // basic gravitation and friction
         v[1] += 0.25;
@@ -114,9 +161,21 @@ public class GameWorld extends    JPanel
         v[0] = update[2];
         v[1] = update[3];
 
+        if (p[0] >= 730 && p[1] >= 540) {
+            goal = true;
+            score = (100000/time)*(2000/length);
+
+            if (score > highscore) highscore = score;
+        }
+
+        // update timer
+        if (!goal) time += 25;
+
         repaint();
     }
 
+
+    // Mouse events -----------------------------------------------------------
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
@@ -130,11 +189,15 @@ public class GameWorld extends    JPanel
 
         if (! CollisionDetection.toClose(p[0], p[1], 16,
                                          mp[0],mp[1],mp[2],mp[3])) {
+
+            if (!goal) length += Math.hypot(mp[2]-mp[0],mp[3]-mp[1]);
+
             Graphics w = world.createGraphics();
             w.drawLine(mp[0], mp[1], mp[2], mp[3]);
             w.dispose();
             drawData.add(new int[] {mp[0],mp[1],mp[2],mp[3]});
             mp = new int[] {-1,-1,-1,-1};
+
         } else reset();
     }
 
