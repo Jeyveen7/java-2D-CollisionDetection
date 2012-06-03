@@ -113,10 +113,10 @@ public class MyGame extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        if      (e.getSource() == l1) gw.level(level1);
-        else if (e.getSource() == l2) gw.level(level2);
-        else if (e.getSource() == l3) gw.level(level3);
-        else if (e.getSource() == l4) gw.level(level4);
+        if      (e.getSource() == l1) gw.setLevel(level1,1);
+        else if (e.getSource() == l2) gw.setLevel(level2,2);
+        else if (e.getSource() == l3) gw.setLevel(level3,3);
+        else if (e.getSource() == l4) gw.setLevel(level4,4);
     }
 
     public static void main(String[] args) {

@@ -23,6 +23,11 @@ import java.awt.Color;
 
 import java.util.ArrayList;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+
 
 public class GameWorld extends    JPanel 
                        implements ActionListener,
@@ -40,8 +45,9 @@ public class GameWorld extends    JPanel
 
     int[] mp = {-1,-1,-1,-1}; // mouse position
 
+    int highscores[] = {0,0,0,0};
+    int level = 1;
     int score = 0;
-    int highscore = 0;
     int time = 0;
     int length = 0;
     boolean goal = false;
@@ -50,6 +56,8 @@ public class GameWorld extends    JPanel
         setBackground(Color.BLACK);
         addMouseMotionListener(this);
         addMouseListener(this);
+
+        loadScores();
 
         for (int[] il : levelData) worldData.add(il);
         drawData.addAll(worldData);
@@ -75,9 +83,30 @@ public class GameWorld extends    JPanel
         timer.start();
     }
 
-    public void level(int[][] levelData) {
+    private void saveScores() {
+        try {
+            FileOutputStream f =
+            new FileOutputStream("highscores.ser");
+            ObjectOutputStream out = new ObjectOutputStream(f);
+            out.writeObject(highscores);
+            out.close();
+            f.close();
+        } catch(Exception e) {}
+    }
+
+    private void loadScores() {
+        try {
+            FileInputStream f = new FileInputStream("highscores.ser");
+            ObjectInputStream in = new ObjectInputStream(f);
+            highscores = (int[]) in.readObject();
+            in.close();
+            f.close();
+        } catch(Exception e) {}
+    }
+
+    public void setLevel(int[][] levelData, int level) {
         worldData.clear();
-        highscore = 0;
+        this.level = level;
         for (int[] il : levelData) worldData.add(il);
         reset();
     }
@@ -102,7 +131,7 @@ public class GameWorld extends    JPanel
         g.drawString("Score",650,50);
         g.drawString(""+score, 730,50);
         g.drawString("HighScore", 650,65);
-        g.drawString(""+highscore,730,65);
+        g.drawString(""+highscores[level-1],730,65);
 
         g.dispose();
     }
@@ -165,7 +194,10 @@ public class GameWorld extends    JPanel
             goal = true;
             score = (100000/time)*(2000/length);
 
-            if (score > highscore) highscore = score;
+            if (score > highscores[level-1]) {
+                highscores[level-1] = score;
+                saveScores();
+            }
         }
 
         // update timer
